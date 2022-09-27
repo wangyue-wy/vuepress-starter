@@ -14,5 +14,7 @@
     "node-sass": "^4.14.1",
     "sass-loader": "^7.3.1",
     "vuepress": "^1.9.7"
-  }
+  },
+  "private": true,
+  "homepage" : "https://wangyue-wy.github.io/vuepress-starter/"
 }
