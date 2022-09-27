@@ -11,9 +11,9 @@ cd doc/.vuepress/dist
 
 git init
 git add -A
-git commit -m 'vuepress'
+git commit -m 'deploy'
 
 # 如果发布到 https://<USERNAME>.github.io  填写你刚刚创建的仓库地址
-git push -f git@github.com:wangyue-wy/vuepresstarter.github.io.git
+git push -f git@github.com:wangyue-wy/vuepresstarter.github.io.git master:gh-pages
 
 cd -
