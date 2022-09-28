@@ -1,7 +1,7 @@
 module.exports = {
     title: "幸福的丹丹",
     description: 'My personal blog',
-    base: '/', // 此处设置仓库名称
+    base: '/vuepress-starter/', // 此处设置仓库名称
     head: [
         ['link', { rel: 'icon', href: '/images/wd-img.jpg' }]
     ],
