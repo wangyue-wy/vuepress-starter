@@ -1,5 +1,5 @@
 module.exports = {
-    title: "幸福的丹丹",
+    title: "Happy Ms. Dan",
     description: 'My personal blog',
     base: '/vuepress-starter/', // 此处设置仓库名称
     head: [
@@ -20,13 +20,23 @@ module.exports = {
             //         { text: 'js笔记',  link: '/javaScript/jsNote/reduce' },
             //     ]
             // },
-            { text: '数据结构', link: '/javaScript/dataStructure/dataStructure' }
+            { text: '数据结构', link: '/javaScript/dataStructure/dataStructure' },
+            {
+                text: 'vuepress',
+                items: [
+                    { text: 'vuepress搭建', link: '/pressWord/pressBuild/pressBuild' },
+                    { text: 'vuepress部署', link: '/pressWord/pressDeploy/pressDeploy' }
+                ]
+            },
+            { text: 'js知识点', link: '/javaScript/knowledge/knowledge' }
             
         ],
         sidebar: {  //配置侧边栏
             '/javaScript/dataStructure/': [
-                // '',     /* /javaScript/ */
-                'dataStructure',  /* /javaScript/dataStructure.html */
+                'dataStructure'
+            ],
+            '/javaScript/knowledge/': [
+                'knowledge'
             ]
         }
     },
