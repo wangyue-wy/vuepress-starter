@@ -7,7 +7,7 @@ js数据类型分为基本类型和引用类型。
 基本类型有number,string, boolean undefined null bigint Symbol。
 
 
-引用类型有object,object包含Data、function、Array等。
+引用类型有object,object包含Date、function、Array等。
 
 
 bigint 可以表示任意大的整数
@@ -20,7 +20,7 @@ Symbol 表示独一无二的值，最大的用法是用来定义对象的唯一�
 
 
 引用数据类型存储在堆当中，变量访问的其实是一个指针，它指向存储对象的内存地址
-> 1 Number类型
+### Number类型
 ```js
 // 包含：常规数字、NaN
 // NaN:  非数字 不是一个数，但它率属于数字类型.NaN和任何值（包括自己）都不相等：NaN!=NaN,所以我们能用相等的方式判断是否为有效数字
@@ -36,6 +36,214 @@ console.log(Number(undefined)) // NaN
 console.log(Number(null)) // 0
 console.log(Number('1')) // 1
 console.log(Number('a')) // NaN
+
+// parseFloat 函数解析字符串并返回浮点数
+// 此函数确定指定字符串中的第一个字符是否为数字。如果是，它会解析字符串直到到达数字的末尾，并将数字作为数字而不是字符串返回。
+// 如果第一个字符不能转换为数字，parseFloat() 返回 NaN
+// 如果字符串小数点后面都是0，则返回整数
+// 允许前导和尾随空格。
+console.log(parseFloat('1.00')) // 1
+console.log(parseFloat('1.01')) // 1.01
+console.log(parseFloat('1a')) // 1
+console.log(parseFloat('a1')) // NaN
+console.log(parseFloat('11 22')) // 11
+console.log(parseFloat(' 11 ')) // 11
+
+// parseInt() 将给定的值解析成整数
+// 允许前导和尾随空格。
+// 如果第一个字符不能转换为数字，parseInt() 返回 NaN
+console.log(parseInt('1.00')) // 1
+console.log(parseInt('1.01')) // 1
+console.log(parseInt('1a')) // 1
+console.log(parseInt('a1')) // NaN
+console.log(parseInt('11 22')) // 11
+console.log(parseInt(' 11 ')) // 11
+
+// Number.MAX_VALUE 表示在 JavaScript 里所能表示的最大数值
+
+// Number.MIN_VALUE 表示在 JavaScript 中所能表示的最小的正值
+
+// Number.isFinite(n) 用来检测传入的参数是否是一个有穷数（finite number)
+
+// Number.isInteger(n) 用来判断给定的参数是否为整数
+
+// n.toFixed(key) // 保留确定的小数点数，会四舍五入
+
+// n.toString() // 数字转为字符串
+```
+### String类型
+```js
+// charAt() 方法可返回字符串中指定位置的字符。
+let str = "Hello"
+let s = str.charAt(1)
+console.log(s) // e
+
+// concat() 方法用于连接两个或多个字符串。
+// 该方法没有改变原有字符串，但是会返回连接两个或多个字符串新字符串
+let str = "Hello";
+let str2 = "World";
+let s = str.concat(str2);
+console.log(s); // HelloWorld
+
+// indexOf() 方法可返回某个指定的字符串值在字符串中首次出现的位置。
+// 如果没有找到匹配的字符串则返回 -1。
+let str = "Hello";
+let s = str.indexOf("e");
+console.log(s); // 1
+
+// includes() 方法用于判断字符串是否包含指定的子字符串。
+let str = "Hello";
+let s = str.includes("e");
+console.log(s); // true
+
+// match() 方法可在字符串内检索指定的值，或找到一个或多个正则表达式的匹配
+let str = "Hello";
+let s = str.match(/l/g);
+console.log(s); // [ 'l', 'l' ]
+
+// repeat() 方法字符串复制指定次数。
+let str = "Hello";
+let s = str.repeat(2);
+console.log(s); // HelloHello
+
+// replace() 方法用于在字符串中用一些字符替换另一些字符，或替换一个与正则表达式匹配的子串。
+let str = "Hello";
+let s = str.replace("l", "o");
+let se = str.replace(/l/g, "o")
+console.log(s,se); // Heolo  Heooo
+
+// replaceAll() 方法用于在字符串中用一些字符替换另一些字符，或替换一个与正则表达式匹配的子串，该函数会替换所有匹配到的子字符串。
+let str = "Hello";
+let s = str.replaceAll("l", "o");
+console.log(s); //Heooo
+
+// search() 方法用于检索字符串中指定的子字符串，或检索与正则表达式相匹配的子字符串。
+// search() 对大小写敏感,想不区分大小写，追加i
+let str = "Hello";
+let s = str.search("he");
+let se = str.search("He");
+let see = str.search(/he/i);
+console.log(s, se, see); // -1 , 0, 0
+
+// slice(start, end) 指定的开始和结束位置，提取字符串的某个部分  开始位置是必填。 截取的字符不包括结束位置
+// 结束位置如果不写，默认到结束,原字符串不变，返回一个新的被截取的字符串，可以是负数，表示从倒数位置起
+// 如果开始与结束位置相同，则返回空串
+let str = "Hello";
+let s = str.slice(1, 2);
+console.log(s); // e
+
+// substring() 方法用于提取字符串中介于两个指定下标之间的字符。不包含结束位置
+// 该方法返回一个新的字符串，其内容是从 start 处到 stop-1 处的所有字符，其长度为 stop 减 start
+// 如果 start 与 end 相等，那么该方法返回的就是一个空串
+// 如果 start 比 end 大，那么该方法在提取子串之前会先交换这两个参数
+// 果 start 或 end 为负数，那么它将被替换为 0
+let str = "Hello";
+let s = str.substring(1, 3);
+console.log(str); // Hello
+console.log(s); // el
+
+// substr(start,length) 方法用于返回一个从指定位置开始的指定长度的子字符串
+// 如果start是负数，那么该参数声明从字符串的尾部开始算起的位置
+// 如果 length 为 0 或负数，将返回一个空字符串。
+// 如果没有指定 length，则表示截取到末尾
+var subtrA = '012345'
+console.log(subtrA.substr(3,1)) // 3
+
+// split(separator,limit) 方法用于把一个字符串分割成字符串数组。
+// eparator 可选。字符串或正则表达式，从该参数指定的地方分割
+// limit 可选。该参数可指定返回的数组的最大长度。如果设置了该参数，返回的子串不会多于这个参数指定的数组。如果没有设置该参数，整个字符串都会被分割，不考虑它的长度。
+let str = "Hello";
+let s = str.split("e");
+console.log(str); // Hello
+console.log(s); // [ 'H', 'llo' ]
+
+// toLowerCase() 方法用于把字符串转换为小写。
+
+// toUpperCase() 方法用于把字符串转换为大写。
+
+// trim() 方法用于删除字符串的头尾空白符，空白符包括：空格、制表符 tab、换行符等其他空白符等。
+let str = "    Hello   ";
+let s = str.trim();
+console.log(str); //    Hello
+console.log(s); // Hello
+```
+### Bigint
+```js
+// 可以表示任意大的整数
+// 因为Number有最大值的限制，使用BigInt，整数溢出将不再是问题
+// 要创建BigInt，只需在整数的末尾追加n即可。
+console.log(9n) // 9n
+// 可以调用 BigInt() 构造函数
+console.log(BigInt('9') // 9n
+
+// 无法转换的数据类型和值会引发异常
+BigInt(10.2); // RangeError
+BigInt(null); // TypeError
+BigInt("abc"); // SyntaxError
+
+// 不能使用严格相等运算符将BigInt与常规数字进行比较，因为它们的类型不同
+console.log(1n === 1); // false
+
+// 除了一元加号(+)运算符外，所有的算术运算符都可以用于BigInt
++10n // 错误用法
+```
+### Symbol
+```js
+// Symbol 本质上是一种唯一标识符，可用作对象的唯一属性名
+// 声明方法
+let id = Symbol('id')
+
+// Symbol 数据类型的特点是唯一性，即使是用同一个变量生成的值也不相等
+let id1 = Symbol('id');
+let id2 = Symbol('id');
+console.log(id1 == id2); // false
+
+// Symbol 数据类型的另一特点是隐藏性，for···in，object.keys() 不能访问
+// Object.getOwnPropertySymbols 方法会返回一个数组，成员是当前对象的所有用作属性名的 Symbol 值。
+// 如果希望使用同一个symbol值，官方提供了全局注册并登记的方法：Symbol.for()
+let name1 = Symbol.for('name'); //检测到未创建后新建
+let name2 = Symbol.for('name'); //检测到已创建后返回
+console.log(name1 === name2); // true
+
+// 通过这种方法就可以通过参数值获取到全局的symbol对象了，反之，能不能通过symbol对象获取到参数值呢？ 是可以的 ，通过Symbol.keyFor()
+let name1 = Symbol.for('name');
+let name2 = Symbol.for('name');
+console.log(Symbol.keyFor(name1));  // 'name'
+console.log(Symbol.keyFor(name2)); // 'name'
+```
+## 数据类型检测
+> 1 typeof()
+```js
+// 只适用于基本数据类型，对于对象，数组，null返回的都是object
+console.log(typeof(undefined)) //undefined
+console.log(typeof(null)) // object
+console.log(typeof function(){}); // function
+```
+> 2 instanceof
+```js
+// 检测当前实例是否隶属于某各类
+var arr=new Array();
+console.log(arr instanceof Array); // true
+console.log(arr instanceof Object) // true; 这是因为 Array 是 object 的子类
+```
+> 3 constructor
+```js
+// 返回创建实例对象的 Object 构造函数的引用
+// 除了undefined和null之外，其他类型都可以通过constructor属性来判断类型
+var arr=new Array();
+console.log(arr.constructor == Array) // true
+```
+> 4 Array.isArray()
+```js
+// 判断数组
+console.log(Array.isArray([])); // true
+```
+> 5 Object.prototype.toString.call()
+```js
+// 在Object这个类的原型上也有一个方法toString,但是这个方法并不是把值转换成字符串，而是返回当前值得所属类详细信息，固定结构：’[object 所属的类]'
+// call是改变this的指向为需要检测的数据
+Object.prototype.toString.call(12) // [boject Number]
+Object.prototype.toString.call(true) // [boject Boolean]
 ```
 ## call()和apply()
 每个函数都包含两个非继承而来的方法：call()和apply()。
