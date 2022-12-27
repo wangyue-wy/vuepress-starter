@@ -406,19 +406,64 @@ a.b() // hello
     }
     var p = new Person(); // 每隔一秒都会有一个NaN打印出来。因为定时器add()的this指向window，将换成箭头函数就可以实现了
 ```
+## 对象的set和get方法
+```js
+// get 关键字将对象属性与函数进行绑定，当属性被访问时，对应函数被执行
+// set 关键字将对象属性与函数进行绑定，当改变属性值时，对应函数被执行。
+// 如果只有get方法，没有set方法，那么这个属性是只读属性不能修改。如果只有set没有get 方法，那么就不能获取只能设置。
+const source = {
+  get bar () {
+    return '浪里个浪'
+  },
+  set foo (value) {
+    console.log(value)
+  }
+}
+source.bar = 'wowo'
+source.foo = 'yiyi'
+console.log(source.bar) // 浪里个浪
+console.log(source.foo) // undefinend
+// 得出结论，bar不可修改，foo获取不到
+
+const sources = {
+  step: 1,
+  get bar () {
+    return this.step
+  },
+  set bar (value) {
+    this.step = value
+  }
+}
+sources.bar = 'yiyi'
+console.log(sources.bar) // yiyi
+
+const target = {}
+Object.assign(target,source)
+console.log(source) // 打印值为底下第一张图片
+console.log(target) // 打印值为底下第二张图片
+```
+![img](/images/log-1.png)
+![img](/images/log-2.png)
+```js
+// 根据打印对比出，Object.assign只能复制属性和属性值，set和get方法复制不了
+// 这时Object.getOwnPropertyDescriptors()方法配合Object.defineProperties()方法，就可以实现正确拷贝
+const target1 = {}
+Object.defineProperties(target1,Object.getOwnPropertyDescriptors(source))
+console.log(target1) // 与source打印的值一样
+```
 ## es
-> 1 rest参数
+### rest参数
 ```js
 function rest(a, b, ...rests) {
   console.log(a,b,rests)
 }
 console.log(rest(1,2,3,4,5)) // 1,2,[3,4,5]
 ```
-> 2 指数操作符 **幂
+### 指数操作符 **幂
 ```js
 console.log(2**3) // 8
 ```
-> 3 对象遍历与object方法
+### 对象遍历与object方法
 ```js
 // 在原型上添加属性
 const obj = Object.create({
@@ -468,4 +513,44 @@ Object.create(null)
 //Object.defineProperty() 直接在一个对象上定义一个新属性，或者修改一个对象的现有属性，并返回此对象。只能操作一个。 
 //Object.defineProperties() 作用与上面一样，不过可以一次性操作多个
 //Object.getPrototypeOf() 方法返回指定对象的原型（内部[[Prototype]]属性的值）。
+```
+### padStart和padEnd
+```js
+// 允许将空字符串或其他字符串添加到原始字符串的开头或结尾
+// String.padStart(length,string)
+// length代表需要填充的长度，如果这个数值小于当前字符串的长度，则返回当前字符串本身
+// string 填充字符串
+console.log('x'.padStart(5, 'ab')) // ababx
+console.log('x'.padEnd(5, 'ab')) // xabab
+```
+### for await of
+```js
+// for await of可以用来遍历异步迭代器，且会等待前一个成员的状态改变后才会遍历到下一个成员，相当于async函数内部的await
+function Gen (time) {
+  return new Promise((resolve,reject) => {
+    setTimeout(() => {
+      resolve(time)
+    },time)
+  })
+}
+async function teest () {
+  let arr = [Gen(200), Gen(1000), Gen(3000)]
+  for await (let item of arr) {
+    console.log(Date.now(), item)
+  }
+}
+teest()
+// 1668498817940 200
+// 1668498818694 1000
+// 1668498820693 3000
+```
+### flat()与flatMap()
+```js
+// flat(depth) 方法会按照一个可指定的深度递归遍历数组，并将所有元素与遍历到的子数组中的元素合并为一个新数组返回,depth表示深度，默认为1
+// flatMap()从方法的名字上也可以看出来它包含两部分功能一个是 map，一个是 flat（深度为1）。
+const flatList = [1,2,[3,4,[5,6]],[7,8],9]
+console.log(flatList.flat(2)) // [1, 2, 3, 4, 5, 6, 7, 8, 9]
+// 想要数组的值翻倍并且去掉值为0的项
+const flatList1 = [1,2,3,0]
+console.log(flatList1.flatMap(item => item === 0 ? [] : [item*2])) // [2, 4, 6]
 ```

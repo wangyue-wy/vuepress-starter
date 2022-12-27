@@ -28,7 +28,8 @@ module.exports = {
                     { text: 'vuepress部署', link: '/pressWord/pressDeploy/pressDeploy' }
                 ]
             },
-            { text: 'js知识点', link: '/javaScript/knowledge/knowledge' }
+            { text: 'js知识点', link: '/javaScript/knowledge/knowledge' },
+            { text: 'openLayers', link: '/openLayers/openLayers'}
             
         ],
         sidebar: {  //配置侧边栏
@@ -37,6 +38,9 @@ module.exports = {
             ],
             '/javaScript/knowledge/': [
                 'knowledge'
+            ],
+            '/openLayers/': [
+                'openLayers'
             ]
         }
     },
