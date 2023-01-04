@@ -28,7 +28,7 @@
 
 ## ​简介
 数据结构是指相互之间存在着一种或多种关系的数据元素的集合和该集合中数据元素之间的关系组成。记为：Data_Structure=(D,R)，其中D是数据元素的集合，R是该集合中所有元素之间的关系的有限集合
-![img](/images/data.png)
+![img](/vuepress-starter/images/data.png)
 
 ## 正文
 ### 数组
@@ -59,12 +59,12 @@ let array = [];
 | some | 对数组中的每一项运行给定函数，如果该函数中任一项返回true，则返回true |
 | reduce | 接收一个函数作为参数，做数组的累加器，或者拼接数组项作为字符串,不改变原数组 |
 
-![img](/images/js-array.png)
+![img](/vuepress-starter/images/js-array.png)
 
 ### Stack（栈）
 限定仅在表尾进行插入和删除操作的线性表(一个线性表是n个具有相同特性的数据元素的有限序列,线性表中数据元素之间的关系是一对一的关系)，新添加的或待删除的元素都保存在栈的同一端，称作栈顶，另一端就叫栈底。
 <div align=center>
-![img](/images/stack.png)
+![img](/vuepress-starter/images/stack.png)
 </div>
 > Stack的特点是后进先出（last in first out）。生活中常见的Stack的例子比如一摞书，你最后放上去的那本你之后会最先拿走；又比如浏览器的访问历史，当点击返回按钮，最后访问的网站最先从历史记录中弹出。
 
@@ -182,7 +182,7 @@ console.log(stackFactorial(4));     //24
 ### Queue（队列）
  和<font style="color: #000;font-weight:blod;font-size:20px"> 栈 </font>相反，<font style="color: #000;font-weight:blod;font-size:20px"> 队列 </font> 是一种先进先出（FIFO）的线性表，只允许在表的一端进行插入，而在另一端进行删除元素，最早进入队列的元素最早离开。允许插入的一端称为队尾，允许删除的一端称为队头
  <div align=center>
-![img](/images/queue.png)
+![img](/vuepress-starter/images/queue.png)
 </div>
 
 创建一个类来表示队列，使用数组用于储存队列中的元素，然后为队列声明如下方法：（与栈结构非常相似）
@@ -311,7 +311,7 @@ console.log('胜利者：' + winner);        //胜利者：John
 ### Linked List（链表）
 链表是存储有序元素的集合，但不同于数组，链表中的元素在内存中并不是连续放置的。每个元素由一个存储元素本身的节点和一个指向下一个元素的引用（也称为指针或链接）组成。相对于传统的数组，链表的一个好处在于，添加或移除元素的时候不需要移动其他的元素。但是数组可以直接访问任何位置的任何元素，而想要访问链表中间的一个元素，需要从起点（表头）开始迭代列表直到找到所需的元素。
  <div align=center>
-![img](/images/link.png)
+![img](/vuepress-starter/images/link.png)
 </div>
 
 ::: tip
@@ -474,7 +474,7 @@ console.log(linkedList.indexOf(7)) // 2
 ### Set（集合）
 集合是由一组无序且唯一（即不能重复）的项组成。这个数据结构使用了与有限集合相同的数学概念。不包含任何元素的集合是空集。
 <div align=center>
-![img](/images/set.png)
+![img](/vuepress-starter/images/set.png)
 </div>
 
 一个典型的Set应该具有以下方法：
@@ -703,7 +703,7 @@ console.log(dictionary.getItems());     //Object {Gandalf: "gandalf@email.com", 
 ### Hash Table（哈希表/散列表）
 Hash Table是一种用于存储键值对（key value pair）的数据结构，因为Hash Table根据key查询value的速度很快，所以它常用于实现Map、Dictinary、Object等数据结构。如下图所示，Hash Table内部使用一个hash函数将传入的键转换成一串数字，而这串数字将作为键值对实际的key，通过这个key查询对应的value非常快，时间复杂度将达到O(1)。Hash函数要求相同输入对应的输出必须相等，而不同输入对应的输出必须不等，相当于对每对数据打上唯一的指纹。
 <div align=center>
-![img](/images/hash.png)
+![img](/vuepress-starter/images/hash.png)
 </div>
 ::: tip
 HashTable类是Dictionary类的一种散列表实现方式。散列算法的作用是尽可能快地在数据结构中找到一个值。散列函数的作用是给定一个键值，然后返回值在表中的地址。在散列表上插入、 删除和取用数据都非常快， 但是对于查找操作来说却效率低下， 比如查找最大最小值。 得求助于其他数据结构， 二叉查找树是一个很好的选择。
@@ -790,7 +790,7 @@ hashTable.print()
 ### Tree （树）
 Tree的数据结构和自然界中的树极其相似，有根、树枝、叶子，如下图所示。Tree是一种多层数据结构，与Array、Stack、Queue相比是一种非线性的数据结构，在进行插入和搜索操作时很高效。
 <div align=center>
-![img](/images/tree.png)
+![img](/vuepress-starter/images/tree.png)
 </div>
 在描述一个Tree时经常会用到下列概念：
 + Root（根）：代表树的根节点，根节点没有父节点
@@ -807,7 +807,7 @@ Tree的数据结构和自然界中的树极其相似，有根、树枝、叶子�
 
 我们以二叉查找树为例，展示树在Javascript中的实现。在二叉查找树中，即每个节点最多只有两个子节点，而左侧子节点小于当前节点，而右侧子节点大于当前节点，如图所示：
 <div align=center>
-![img](/images/two-tree.png)
+![img](/vuepress-starter/images/two-tree.png)
 </div>
 一个二叉查找树应该具有以下常用方法：
 + <font color='red'>add()</font>：向树中插入一个节点
@@ -965,19 +965,19 @@ console.log(bst.isPresent(4)); // false
 ### Graph（图）
 Graph是节点（或顶点）以及它们之间的连接（或边）的集合。Graph也可以称为Network（网络）。根据节点之间的连接是否有方向又可以分为Directed Graph（有向图）和Undrected Graph（无向图）。Graph在实际生活中有很多用途，比如：导航软件计算最佳路径，社交软件进行好友推荐等等。
 <div align=center>
-![img](/images/graph.png)
+![img](/vuepress-starter/images/graph.png)
 </div>
 Graph通常有两种表达方式：
 1. Adjaceny List（邻接列表）：
 + 邻接列表可以表示为左侧是节点的列表，右侧列出它所连接的所有其他节点。
 <div align=center>
-![img](/images/graph-list1.png)
+![img](/vuepress-starter/images/graph-list1.png)
 </div>
 
 2. Adjacency Matrix（邻接矩阵）：
 + 邻接矩阵用矩阵来表示节点之间的连接关系，每行或者每列表示一个节点，行和列的交叉处的数字表示节点之间的关系：0表示没用连接，1表示有连接，大于1表示不同的权重。
 <div align=center>
-![img](/images/graph-list2.png)
+![img](/vuepress-starter/images/graph-list2.png)
 </div>
 ::: tip
 访问Graph中的节点需要使用遍历算法，遍历算法又分为广度优先和深度优先，主要用于确定目标节点和根节点之间的距离。
