@@ -442,8 +442,8 @@ Object.assign(target,source)
 console.log(source) // 打印值为底下第一张图片
 console.log(target) // 打印值为底下第二张图片
 ```
-![img](/images/log-1.png)
-![img](/images/log-2.png)
+![img](/vuepress-starter/images/log-1.png)
+![img](/vuepress-starter/images/log-2.png)
 ```js
 // 根据打印对比出，Object.assign只能复制属性和属性值，set和get方法复制不了
 // 这时Object.getOwnPropertyDescriptors()方法配合Object.defineProperties()方法，就可以实现正确拷贝

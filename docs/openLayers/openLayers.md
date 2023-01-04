@@ -117,7 +117,7 @@ export default {
 }
 ```
 效果图
-![img](/images/easy-map.png)
+![img](/vuepress-starter/images/easy-map.png)
 
 地图容器必须绑定一个id，并且容器必须有高度和宽度，new Map里面的target的值必须与id一样
 ## 地图事件监听
@@ -189,7 +189,7 @@ setIcon () {
 ```
 
 效果图
-![img](/images/map-icon.png)
+![img](/vuepress-starter/images/map-icon.png)
 
 ## 地图上添加点，线，多边形，圆
 ```js
@@ -255,7 +255,7 @@ addFe () {
 ```
 
 效果图
-![img](/images/map-fe.png)
+![img](/vuepress-starter/images/map-fe.png)
 
 ## 给特定区域加上背景颜色
 
@@ -331,7 +331,7 @@ setBgf (region) {
 }
 ```
 效果图
-![img](/images/map-bgf.png)
+![img](/vuepress-starter/images/map-bgf.png)
 
 ## 鼠标悬停改变当前区域颜色并且展示当前信息
 
@@ -460,7 +460,7 @@ showPop (e) {
 }
 ```
 效果图
-![img](/images/map-se.png)
+![img](/vuepress-starter/images/map-se.png)
 
 ## 地图下钻
 ```js
