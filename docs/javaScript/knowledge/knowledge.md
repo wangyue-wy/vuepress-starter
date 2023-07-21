@@ -187,6 +187,12 @@ console.log(1n === 1); // false
 // 除了一元加号(+)运算符外，所有的算术运算符都可以用于BigInt
 +10n // 错误用法
 ```
+### Boolean
+除了“数字0/NaN/空字符串/null/undefined"五个值是false，其余值都是true
+```js
+console.log(Boolean('0')) // true
+console.log(Boolean(0)) // false
+```
 ### Symbol
 ```js
 // Symbol 本质上是一种唯一标识符，可用作对象的唯一属性名
@@ -1350,12 +1356,189 @@ Promise.prototype.finally = function (callback) {
     reason => P.resolve(callback()).then(() => { throw reason })
   );
 };
+
+// Promise.all()
+const p = Promise.all([p1, p2, p3]);
+// Promise.all()方法接受一个数组作为参数，p1、p2、p3都是 Promise 实例，如果不是，就会先调用下面讲到的Promise.resolve方法，将参数转为 Promise 实例，再进一步处理。另外，Promise.all()方法的参数可以不是数组，但必须具有 Iterator 接口，且返回的每个成员都是 Promise 实例。
+// 只有p1、p2、p3的状态都变成fulfilled，p的状态才会变成fulfilled，此时p1、p2、p3的返回值组成一个数组，传递给p的回调函数。
+// ）只要p1、p2、p3之中有一个被rejected，p的状态就变成rejected，此时第一个被reject的实例的返回值，会传递给p的回调函数。
+
+// Promise.race() 
+const p = Promise.race([p1, p2, p3]);
+// 上面代码中，只要p1、p2、p3之中有一个实例率先改变状态，p的状态就跟着改变。那个率先改变的 Promise 实例的返回值，就传递给p的回调函数
+// 下面是一个例子，如果指定时间内没有获得结果，就将 Promise 的状态变为reject，否则变为resolve。
+const p = Promise.race([
+  fetch('/resource-that-may-take-a-while'),
+  new Promise(function (resolve, reject) {
+    setTimeout(() => reject(new Error('request timeout')), 5000)
+  })
+]);
+
+p
+.then(console.log)
+.catch(console.error);
+// 上面代码中，如果 5 秒之内fetch方法无法返回结果，变量p的状态就会变为rejected，从而触发catch方法指定的回调函数。
+
+// Promise.allSettled()
+// 用来确定一组异步操作是否都结束了（不管成功或失败）。所以，它的名字叫做”Settled“，包含了”fulfilled“和”rejected“两种情况。
+// 该方法返回的新的 Promise 实例，一旦发生状态变更，状态总是fulfilled，不会变成rejected。状态变成fulfilled后，它的回调函数会接收到一个数组作为参数，该数组的每个成员对应前面数组的每个 Promise 对象。
+const resolved = Promise.resolve(42);
+const rejected = Promise.reject(-1);
+
+const allSettledPromise = Promise.allSettled([resolved, rejected]);
+
+allSettledPromise.then(function (results) {
+  console.log(results);
+});
+// [
+//    { status: 'fulfilled', value: 42 },
+//    { status: 'rejected', reason: -1 }
+// ]
+
+// Promise.any()
+// 只要参数实例有一个变成fulfilled状态，包装实例就会变成fulfilled状态；如果所有参数实例都变成rejected状态，包装实例就会变成rejected状态。
+
+// Promise.resolve()
+// 有时需要将现有对象转为 Promise 对象，Promise.resolve()方法就起到这个作用。
+// Promise.resolve()方法的参数分成四种情况。
+// 1.参数是一个 Promise 实例
+// 如果参数是 Promise 实例，那么Promise.resolve将不做任何修改、原封不动地返回这个实例。
+// 2.参数是一个thenable对象
+// Promise.resolve()方法会将这个对象转为 Promise 对象，然后就立即执行thenable对象的then()方法。
+// 3.参数不是具有then()方法的对象，或根本就不是对象
+// 如果参数是一个原始值，或者是一个不具有then()方法的对象，则Promise.resolve()方法返回一个新的 Promise 对象，状态为resolved
+const p = Promise.resolve('Hello');
+
+p.then(function (s) {
+  console.log(s)
+});
+// Hello
+//4.不带有任何参数
+// Promise.resolve()方法允许调用时不带参数，直接返回一个resolved状态的 Promise 对象。
+// 所以，如果希望得到一个 Promise 对象，比较方便的方法就是直接调用Promise.resolve()方法。
+const p = Promise.resolve();
+p.then(function () {
+  // ...
+});
+
+// Promise.reject()
+// Promise.reject(reason)方法也会返回一个新的 Promise 实例，该实例的状态为rejected。
+const p = Promise.reject('出错了');
+// 等同于
+const p = new Promise((resolve, reject) => reject('出错了'))
+
+p.then(null, function (s) {
+  console.log(s)
+});
+// 出错了
 ```
 ### Iterator和for of
-```js
+> 1. Iterator（遍历器）的概念
 
+JavaScript 原有的表示“集合”的数据结构，主要是数组（Array）和对象（Object），ES6 又添加了Map和Set。这样就有了四种数据集合，用户还可以组合使用它们，定义自己的数据结构，比如数组的成员是Map，Map的成员是对象。这样就需要一种统一的接口机制，来处理所有不同的数据结构。
+
+遍历器（Iterator）就是这样一种机制。它是一种接口，为各种不同的数据结构提供统一的访问机制。任何数据结构只要部署 Iterator 接口，就可以完成遍历操作（即依次处理该数据结构的所有成员）。
+
+Iterator 的作用有三个：一是为各种数据结构，提供一个统一的、简便的访问接口；二是使得数据结构的成员能够按某种次序排列；三是 ES6 创造了一种新的遍历命令for...of循环，Iterator 接口主要供for...of消费。
+
+Iterator 的遍历过程是这样的。
+
+（1）创建一个指针对象，指向当前数据结构的起始位置。也就是说，遍历器对象本质上，就是一个指针对象。
+
+（2）第一次调用指针对象的next方法，可以将指针指向数据结构的第一个成员。
+
+（3）第二次调用指针对象的next方法，指针就指向数据结构的第二个成员。
+
+（4）不断调用指针对象的next方法，直到它指向数据结构的结束位置。
+
+每一次调用next方法，都会返回数据结构的当前成员的信息。具体来说，就是返回一个包含value和done两个属性的对象。其中，value属性是当前成员的值，done属性是一个布尔值，表示遍历是否结束。
+
+> 2. 默认-Iterator-接口
+
+Iterator 接口的目的，就是为所有数据结构，提供了一种统一的访问机制，即for...of循环（详见下文）。当使用for...of循环遍历某种数据结构时，该循环会自动去寻找 Iterator 接口。
+
+一种数据结构只要部署了 Iterator 接口，我们就称这种数据结构是“可遍历的”（iterable）。
+
+ES6 规定，默认的 Iterator 接口部署在数据结构的Symbol.iterator属性，或者说，一个数据结构只要具有Symbol.iterator属性，就可以认为是“可遍历的”（iterable）。Symbol.iterator属性本身是一个函数，就是当前数据结构默认的遍历器生成函数。执行这个函数，就会返回一个遍历器。至于属性名Symbol.iterator，它是一个表达式，返回Symbol对象的iterator属性，这是一个预定义好的、类型为 Symbol 的特殊值，所以要放在方括号内
+```js
+const obj = {
+  [Symbol.iterator] : function () {
+    return {
+      next: function () {
+        return {
+          value: 1,
+          done: true
+        };
+      }
+    };
+  }
+};
+```
+上面代码中，对象obj是可遍历的（iterable），因为具有Symbol.iterator属性。执行这个属性，会返回一个遍历器对象。该对象的根本特征就是具有next方法。每次调用next方法，都会返回一个代表当前成员的信息对象，具有value和done两个属性。
+
+ES6 的有些数据结构原生具备 Iterator 接口（比如数组），即不用任何处理，就可以被for...of循环遍历。原因在于，这些数据结构原生部署了Symbol.iterator属性
+
+原生具备 Iterator 接口的数据结构如下。
+
+Array
+Map
+Set
+String
+TypedArray
+函数的 arguments 对象
+NodeList 对象
+
+> 3. 使用 Generator 函数将对象重新包装一下,让他可以使用for of 遍历
+```js
+const obj = { a: 1, b: 2, c: 3 }
+
+function* entries(obj) {
+  for (let key of Object.keys(obj)) {
+    yield [key, obj[key]];
+  }
+}
+
+for (let [key, value] of entries(obj)) {
+  console.log(key, '->', value);
+}
+// a -> 1
+// b -> 2
+// c -> 3
+
+// 对于有些类似数组的数据，但是不具备iterrator接口时，可以用Arrary.form()转为真正的数组
 ```
 ### Generator
-```js
 
+形式上，Generator 函数是一个普通函数，但是有两个特征。一是，function关键字与函数名之间有一个星号；二是，函数体内部使用yield表达式，定义不同的内部状态（yield在英语里的意思就是“产出”）。
+```js
+function* helloWorldGenerator() {
+  yield 'hello';
+  yield 'world';
+  return 'ending';
+}
+
+var hw = helloWorldGenerator();
+hw.next() // { value: 'hello', done: false }
+hw.next() // { value: 'world', done: false }
 ```
+上面代码定义了一个 Generator 函数helloWorldGenerator，它内部有两个yield表达式（hello和world），即该函数有三个状态：hello，world 和 return 语句（结束执行）。
+
+然后，Generator 函数的调用方法与普通函数一样，也是在函数名后面加上一对圆括号。不同的是，调用 Generator 函数后，该函数并不执行，返回的也不是函数运行结果，而是一个指向内部状态的指针对象(（即遍历器）)
+
+下一步，必须调用遍历器对象的next方法，使得指针移向下一个状态。也就是说，每次调用next方法，内部指针就从函数头部或上一次停下来的地方开始执行，直到遇到下一个yield表达式（或return语句）为止
+
+### async
+async 函数是什么？一句话，它就是 Generator 函数的语法糖。
+
+async函数就是将 Generator 函数的星号（*）替换成async，将yield替换成await
+
+sync函数对 Generator 函数的改进，体现在以下四点
+
+（1）内置执行器: Generator 函数的执行必须靠执行器，所以才有了co模块，而async函数自带执行器。也就是说，async函数的执行，与普通函数一模一样，只要一行。
+
+（2）更好的语义
+
+（3）更广的适用性: co模块约定，yield命令后面只能是 Thunk 函数或 Promise 对象，而async函数的await命令后面，可以是 Promise 对象和原始类型的值（数值、字符串和布尔值，但这时会自动转成立即 resolved 的 Promise 对象）。
+
+（4）返回值是 Promise: async函数的返回值是 Promise 对象，这比 Generator 函数的返回值是 Iterator 对象方便多了。你可以用then方法指定下一步的操作。
+### 构造函数Class....
