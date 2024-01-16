@@ -1536,9 +1536,798 @@ sync函数对 Generator 函数的改进，体现在以下四点
 
 （1）内置执行器: Generator 函数的执行必须靠执行器，所以才有了co模块，而async函数自带执行器。也就是说，async函数的执行，与普通函数一模一样，只要一行。
 
-（2）更好的语义
+（2）更好的语义：async和await，比起星号和yield，语义更清楚了。async表示函数里有异步操作，await表示紧跟在后面的表达式需要等待结果。
 
 （3）更广的适用性: co模块约定，yield命令后面只能是 Thunk 函数或 Promise 对象，而async函数的await命令后面，可以是 Promise 对象和原始类型的值（数值、字符串和布尔值，但这时会自动转成立即 resolved 的 Promise 对象）。
 
 （4）返回值是 Promise: async函数的返回值是 Promise 对象，这比 Generator 函数的返回值是 Iterator 对象方便多了。你可以用then方法指定下一步的操作。
+
+> 1. async 函数有多种使用形式。
+```js
+// 函数声明
+async function foo() {}
+
+// 函数表达式
+const foo = async function () {};
+
+// 对象的方法
+let obj = { async foo() {} };
+obj.foo().then(...)
+
+// Class 的方法
+class Storage {
+  constructor() {
+    this.cachePromise = caches.open('avatars');
+  }
+
+  async getAvatar(name) {
+    const cache = await this.cachePromise;
+    return cache.match(`/avatars/${name}.jpg`);
+  }
+}
+
+const storage = new Storage();
+storage.getAvatar('jake').then(…);
+
+// 箭头函数
+const foo = async () => {};
+```
+> 2. async 函数返回值（Promise对象）
+```js
+// async函数内部return语句返回的值，会成为then方法回调函数的参数。
+async function f() {
+  return 'hello world';
+}
+
+f().then(v => console.log(v))
+// "hello world"
+
+// async函数内部抛出错误，会导致返回的 Promise 对象变为reject状态。抛出的错误对象会被catch方法回调函数接收到。
+async function f() {
+  throw new Error('出错了');
+}
+
+f().then(
+  v => console.log('resolve', v),
+  e => console.log('reject', e)
+)
+//reject Error: 出错了
+```
+> 3. Promise 对象的状态变化
+
+
+async函数返回的 Promise 对象，必须等到内部所有await命令后面的 Promise 对象执行完，才会发生状态改变，除非遇到return语句或者抛出错误。也就是说，只有async函数内部的异步操作执行完，才会执行then方法指定的回调函数。
+
+>4. await 命令
+
+正常情况下，await命令后面是一个 Promise 对象，返回该对象的结果。如果不是 Promise 对象，就直接返回对应的值。另一种情况是，await命令后面是一个thenable对象（即定义了then方法的对象），那么await会将其等同于 Promise 对象。
+```js
+// 实现休眠效果
+// 因为await命令后面是一个 Promise 对象，所以定时写在Promise里面
+function sleep(interval) {
+  return new Promise(resolve => {
+    setTimeout(resolve, interval);
+  })
+}
+
+// 用法
+async function one2FiveInAsync() {
+  for(let i = 1; i <= 5; i++) {
+    console.log(i);
+    await sleep(1000);
+  }
+}
+
+one2FiveInAsync();
+
+// await命令后面的 Promise 对象如果变为reject状态，则reject的参数会被catch方法的回调函数接收到。
+async function f() {
+  await Promise.reject('出错了');
+}
+
+f()
+.then(v => console.log(v))
+.catch(e => console.log(e))
+// 出错了
+
+// 注意，上面代码中，await语句前面没有return，但是reject方法的参数依然传入了catch方法的回调函数。这里如果在await前面加上return，效果是一样的。
+// 任何一个await语句后面的 Promise 对象变为reject状态，那么整个async函数都会中断执行。
+async function f() {
+  await Promise.reject('出错了');
+  await Promise.resolve('hello world'); // 不会执行
+}
+
+// 有时，我们希望即使前一个异步操作失败，也不要中断后面的异步操作。这时可以将第一个await放在try...catch结构里面，这样不管这个异步操作是否成功，第二个await都会执行。
+async function f() {
+  await Promise.reject('出错了')
+    .catch(e => console.log(e));
+  return await Promise.resolve('hello world');
+}
+
+
+f()
+.then(v => console.log(v))
+
+// 下面的例子使用try...catch结构，实现多次重复尝试。
+const superagent = require('superagent');
+const NUM_RETRIES = 3;
+
+async function test() {
+  let i;
+  for (i = 0; i < NUM_RETRIES; ++i) {
+    try {
+      await superagent.get('http://google.com/this-throws-an-error');
+      break;
+    } catch(err) {}
+  }
+  console.log(i); // 3
+}
+
+test();
+// forEach里面不支持使用async await, 因为没有返回值, 可以使用for循环或者map结合Promise.all
+async function processArray(array) {
+  for (const item of array) {
+    await doSomethingAsync(item);
+  }
+}
+async function dbFuc(db) {
+  let docs = [{}, {}, {}];
+  let promises = docs.map((doc) => db.post(doc));
+
+  let results = await Promise.all(promises);
+  console.log(results);
+}
+
+```
 ### 构造函数Class....
+> 1. 实例属性的新写法
+
+实例属性现在除了可以定义在constructor()方法里面的this上面，也可以定义在类内部的最顶层。
+
+```js
+class IncreasingCounter {
+  constructor() {
+    this._count = 0;
+  }
+}
+
+class IncreasingCounter {
+  _count = 0;
+}
+```
+
+>2. Class 表达式
+
+与函数一样，类也可以使用表达式的形式定义。
+
+```js
+const MyClass = class Me {
+  getClassName() {
+    return Me.name;
+  }
+};
+
+// 如果类的内部没用到的话，可以省略Me，也就是可以写成下面的形式。
+const MyClass = class { /* ... */ };
+
+// 采用 Class 表达式，可以写出立即执行的 Class
+let person = new class {
+  constructor(name) {
+    this.name = name;
+  }
+
+  sayName() {
+    console.log(this.name);
+  }
+}('张三');
+
+person.sayName(); // "张三"
+```
+>3. 静态方法
+
+类相当于实例的原型，所有在类中定义的方法，都会被实例继承。如果在一个方法前，加上static关键字，就表示该方法不会被实例继承，而是直接通过类来调用，这就称为“静态方法”。
+
+```js
+// 静态方法可以与非静态方法重名。
+class Foo {
+  static classMethod() {
+    return 'hello';
+  }
+  classMethod () {
+    return 'hello';
+  }
+}
+
+Foo.classMethod() // 'hello'
+
+var foo = new Foo();
+foo.classMethod()
+// TypeError: foo.classMethod is not a function
+
+class Foo1 {
+  classMethod() {
+    return 'hello';
+  }
+}
+Foo1.prototype.classMethod() // 'hello' 构造函数内定义的方法不加static,表示在他原型上添加方法
+
+// 可以使用Object.assign批量添加方法
+Object.assign(Foo1.prototype,{
+		toStrings(){},
+		toValue(){}
+	})
+
+  // 父类的静态方法，可以被子类继承。
+  class Foo {
+  static classMethod() {
+    return 'hello';
+  }
+}
+
+class Bar extends Foo {
+}
+
+Bar.classMethod() // 'hello'
+
+// 静态方法也是可以从super对象上调用的。
+class Foo {
+  static classMethod() {
+    return 'hello';
+  }
+}
+
+class Bar extends Foo {
+  static classMethod() {
+    return super.classMethod() + ', too';
+  }
+}
+
+Bar.classMethod() // "hello, too"
+```
+>4. 静态属性
+
+静态属性指的是 Class 本身的属性，即Class.propName，而不是定义在实例对象（this）上的属性。
+
+```js
+// 写法一
+class Foo {
+}
+
+Foo.prop = 1;
+Foo.prop // 1
+
+// 写法二（推荐）
+class MyClass {
+  static myStaticProp = 42;
+
+  constructor() {
+    console.log(MyClass.myStaticProp); // 42
+  }
+}
+```
+>5. 私有方法和私有属性
+
+私有方法和私有属性，是只能在类的内部访问的方法和属性，外部不能访问。
+
+实现的伪方法：1. 命名上的区分，2. 用Symbol命名
+真正实现的方法：1. #， 2. 用Proxy, 3. WeakMap
+
+```js
+// 私有属性和方法的正式写法
+class IncreasingCounter {
+  #count = 0;
+  get value() {
+    console.log('Getting the current value!');
+    return this.#count;
+  }
+  #increment() {
+    this.#count++;
+  }
+}
+```
+>6. in 运算符
+
+直接访问某个类不存在的私有属性会报错，但是访问不存在的公开属性不会报错。这个特性可以用来判断，某个对象是否为类的实例。
+
+```js
+class C {
+  #brand;
+
+  static isC(obj) {
+    if (#brand in obj) {
+      // 私有属性 #brand 存在
+      return true;
+    } else {
+      // 私有属性 #foo 不存在
+      return false;
+    }
+  }
+}
+```
+>7. 静态块
+
+允许在类的内部设置一个代码块，在类生成时运行且只运行一次，主要作用是对静态属性进行初始化。以后，新建类的实例时，这个块就不运行了。
+
+每个类允许有多个静态块，每个静态块中只能访问之前声明的静态属性。另外，静态块的内部不能有return语句。
+
+静态块内部可以使用类名或this，指代当前类。
+
+除了静态属性的初始化，静态块还有一个作用，就是将私有属性与类的外部代码分享。
+
+```js
+class C {
+  static x = 1;
+  static {
+    this.x; // 1
+    // 或者
+    C.x; // 1
+  }
+}
+
+
+let getX;
+class C {
+  #x = 1;
+  static {
+    getX = obj => obj.#x;
+  }
+}
+
+console.log(getX(new C())); // 1
+```
+> 8. 类的注意点
+
+类和模块的内部，默认就是严格模式,
+
+类不存在变量提升（hoist），这一点与 ES5 完全不同。
+
+ES6 不会把类的声明提升到代码头部。这种规定的原因与下文要提到的继承有关，必须保证子类在父类之后定义。
+
+```js
+let Foo = class {};
+class Bar extends Foo {
+}
+```
+上面的代码不会报错，因为Bar继承Foo的时候，Foo已经有定义了。但是，如果存在class的提升，上面代码就会报错，因为class会被提升到代码头部，而定义Foo的那一行没有提升，导致Bar继承Foo的时候，Foo还没有定义。
+
+### Class继承
+>1. 简介 
+
+Class 可以通过extends关键字实现继承，让子类继承父类的属性和方法。
+
+ES6 规定，子类必须在constructor()方法中调用super()，否则就会报错。这是因为子类自己的this对象，必须先通过父类的构造函数完成塑造，得到与父类同样的实例属性和方法，然后再对其进行加工，添加子类自己的实例属性和方法。如果不调用super()方法，子类就得不到自己的this对象。
+
+为什么子类的构造函数，一定要调用super()？原因就在于 ES6 的继承机制，与 ES5 完全不同。ES5 的继承机制，是先创造一个独立的子类的实例对象，然后再将父类的方法添加到这个对象上面，即“实例在前，继承在后”。ES6 的继承机制，则是先将父类的属性和方法，加到一个空的对象上面，然后再将该对象作为子类的实例，即“继承在前，实例在后”。这就是为什么 ES6 的继承必须先调用super()方法，因为这一步会生成一个继承父类的this对象，没有这一步就无法继承父类。
+```js
+class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+class ColorPoint extends Point {
+  constructor(x, y, color) {
+    this.color = color; // ReferenceError
+    super(x, y);
+    this.color = color; // 正确
+  }
+}
+```
+>2. 私有属性和私有方法的继承
+
+父类所有的属性和方法，都会被子类继承，除了私有的属性和方法。
+
+子类无法继承父类的私有属性，或者说，私有属性只能在定义它的 class 里面使用。
+
+如果父类定义了私有属性的读写方法，子类就可以通过这些方法，读写私有属性。
+
+```js
+class Foo {
+  #p = 1;
+  getP() {
+    return this.#p;
+  }
+}
+
+class Bar extends Foo {
+  constructor() {
+    super();
+    console.log(this.getP()); // 1
+  }
+}
+```
+>3. 静态属性和静态方法的继承
+父类的静态属性和静态方法，也会被子类继承。
+
+注意，静态属性是通过浅拷贝实现继承的。
+
+如果是简单数据类型，互不影响，复杂数据类型，会互相影响
+
+>4. Object.getPrototypeOf()
+
+Object.getPrototypeOf()方法可以用来从子类上获取父类。
+```js
+class Point { /*...*/ }
+
+class ColorPoint extends Point { /*...*/ }
+
+Object.getPrototypeOf(ColorPoint) === Point
+```
+>5. super 关键字 
+
+super这个关键字，既可以当作函数使用，也可以当作对象使用。在这两种情况下，它的用法完全不同。
+
+第一种情况，super作为函数调用时，代表父类的构造函数。ES6 要求，子类的构造函数必须执行一次super()函数。
+
+```js
+class A {}
+
+class B extends A {
+  constructor() {
+    super();
+  }
+}
+```
+注意，这里的super虽然代表了父类的构造函数，但是因为返回的是子类的this（即子类的实例对象），所以super内部的this代表子类的实例，而不是父类的实例，这里的super()相当于A.prototype.constructor.call(this)（在子类的this上运行父类的构造函数）。
+
+```js
+class A {
+  constructor() {
+    console.log(new.target.name);
+  }
+}
+class B extends A {
+  constructor() {
+    super();
+  }
+}
+new A() // A
+new B() // B
+```
+上面示例中，new.target指向当前正在执行的函数。可以看到，在super()执行时（new B()），它指向的是子类B的构造函数，而不是父类A的构造函数。也就是说，super()内部的this指向的是B。
+
+```js
+class A {
+  name = 'A';
+  constructor() {
+    console.log('My name is ' + this.name);
+  }
+}
+
+class B extends A {
+  name = 'B';
+}
+
+const b = new B(); // My name is A
+```
+上面示例中，最后一行输出的是A，而不是B，原因就在于super()执行时，B的name属性还没有绑定到this，所以this.name拿到的是A类的name属性。
+
+作为函数时，super()只能用在子类的构造函数之中，用在其他地方就会报错。
+```js
+class A {}
+
+class B extends A {
+  m() {
+    super(); // 报错
+  }
+}
+```
+第二种情况，super作为对象时，在普通方法中，指向父类的原型对象；在静态方法中，指向父类。
+
+ES6 规定，在子类普通方法中通过super调用父类的方法时，方法内部的this指向当前的子类实例。
+```js
+class A {
+  constructor() {
+    this.x = 1;
+  }
+  print() {
+    console.log(this.x);
+  }
+}
+
+class B extends A {
+  constructor() {
+    super();
+    this.x = 2;
+  }
+  m() {
+    super.print();
+  }
+}
+
+let b = new B();
+b.m() // 2
+```
+由于this指向子类实例，所以如果通过super对某个属性赋值，这时super就是this，赋值的属性会变成子类实例的属性。
+
+```js
+class A {
+  constructor() {
+    this.x = 1;
+  }
+}
+
+class B extends A {
+  constructor() {
+    super();
+    this.x = 2;
+    super.x = 3;
+    console.log(super.x); // undefined
+    console.log(this.x); // 3
+  }
+}
+
+let b = new B();
+```
+
+如果super作为对象，用在静态方法之中，这时super将指向父类，而不是父类的原型对象。
+
+```js
+class Parent {
+  static myMethod(msg) {
+    console.log('static', msg);
+  }
+
+  myMethod(msg) {
+    console.log('instance', msg);
+  }
+}
+
+class Child extends Parent {
+  static myMethod(msg) {
+    super.myMethod(msg);
+  }
+
+  myMethod(msg) {
+    super.myMethod(msg);
+  }
+}
+
+Child.myMethod(1); // static 1
+
+var child = new Child();
+child.myMethod(2); // instance 2
+```
+另外，在子类的静态方法中通过super调用父类的方法时，方法内部的this指向当前的子类，而不是子类的实例。
+```js
+class A {
+  constructor() {
+    this.x = 1;
+  }
+  static print() {
+    console.log(this.x);
+  }
+}
+
+class B extends A {
+  constructor() {
+    super();
+    this.x = 2;
+  }
+  static m() {
+    super.print();
+  }
+}
+
+B.x = 3;
+B.m() // 3
+```
+注意，使用super的时候，必须显式指定是作为函数、还是作为对象使用，否则会报错。
+
+```js
+class A {}
+
+class B extends A {
+  constructor() {
+    super();
+    console.log(super); // 报错
+  }
+}
+
+class A {}
+
+class B extends A {
+  constructor() {
+    super();
+    console.log(super.valueOf() instanceof B); // true
+  }
+}
+
+let b = new B();
+```
+>6. 类的 prototype 属性和__proto__属性
+大多数浏览器的 ES5 实现之中，每一个对象都有__proto__属性，指向对应的构造函数的prototype属性。Class 作为构造函数的语法糖，同时有prototype属性和__proto__属性，因此同时存在两条继承链。
+
+（1）子类的__proto__属性，表示构造函数的继承，总是指向父类。
+
+（2）子类prototype属性的__proto__属性，表示方法的继承，总是指向父类的prototype属性。
+
+```js
+class A {
+}
+
+class B {
+}
+
+// B 的实例继承 A 的实例
+Object.setPrototypeOf(B.prototype, A.prototype);
+
+// B 继承 A 的静态属性
+Object.setPrototypeOf(B, A);
+const b = new B();
+
+// Object.setPrototypeOf方法的实现。
+Object.setPrototypeOf = function (obj, proto) {
+  obj.__proto__ = proto;
+  return obj;
+}
+
+// 因此，就得到了上面的结果。
+Object.setPrototypeOf(B.prototype, A.prototype);
+// 等同于
+B.prototype.__proto__ = A.prototype;
+
+Object.setPrototypeOf(B, A);
+// 等同于
+B.__proto__ = A;
+```
+
+>7. 原生构造函数的继承
+ES5 是先新建子类的实例对象this，再将父类的属性添加到子类上，由于原生构造函数父类的内部属性无法获取，导致无法继承原生的构造函数。
+
+ES6 允许继承原生构造函数定义子类，因为 ES6 是先新建父类的实例对象this，然后再用子类的构造函数修饰this，使得父类的所有行为都可以继承。
+
+下面就是定义了一个带版本功能的数组。
+
+```js
+class VersionedArray extends Array {
+  constructor() {
+    super();
+    this.history = [[]];
+  }
+  commit() {
+    this.history.push(this.slice());  // 使用slice,返回新的数组，如果直接用this，当值改变时，history也会跟着改变
+  }
+  revert() {
+    this.splice(0, this.length, ...this.history[this.history.length - 1]); // 将当前的值恢复成history保存的历史值，替换值
+  }
+}
+
+var x = new VersionedArray();
+
+x.push(1);
+x.push(2);
+x // [1, 2]
+x.history // [[]]
+
+x.commit();
+x.history // [[], [1, 2]]
+
+x.push(3);
+x // [1, 2, 3]
+x.history // [[], [1, 2]]
+
+x.revert();
+x // [1, 2]
+
+```
+
+>8. Mixin 模式的实现
+
+```js
+function mix(...mixins) {
+  class Mix {
+    constructor() {
+      for (let mixin of mixins) {
+        copyProperties(this, new mixin()); // 拷贝实例属性
+      }
+    }
+  }
+
+  for (let mixin of mixins) {
+    copyProperties(Mix, mixin); // 拷贝静态属性
+    copyProperties(Mix.prototype, mixin.prototype); // 拷贝原型属性
+  }
+
+  return Mix;
+}
+
+function copyProperties(target, source) {
+  for (let key of Reflect.ownKeys(source)) {
+    if ( key !== 'constructor'
+      && key !== 'prototype'
+      && key !== 'name'
+    ) {
+      let desc = Object.getOwnPropertyDescriptor(source, key);
+      Object.defineProperty(target, key, desc);
+    }
+  }
+}
+```
+上面代码的mix函数，可以将多个对象合成为一个类。使用的时候，只要继承这个类即可。
+
+```js
+class DistributedEdit extends mix(Loggable, Serializable) {
+  // ...
+}
+```
+
+### Module 的语法
+>1. 简介
+
+在 ES6 之前，社区制定了一些模块加载方案，最主要的有 CommonJS 和 AMD 两种。前者用于服务器，后者用于浏览器。ES6 在语言标准的层面上，实现了模块功能，而且实现得相当简单，完全可以取代 CommonJS 和 AMD 规范，成为浏览器和服务器通用的模块解决方案。
+
+ES6 模块的设计思想是尽量的静态化，使得编译时就能确定模块的依赖关系，以及输入和输出的变量。CommonJS 和 AMD 模块，都只能在运行时确定这些东西。比如，CommonJS 模块就是对象，输入时必须查找对象属性。
+
+
+>2. export 与 import 的复合写法
+
+```js
+export { foo, bar } from 'my_module';
+// 可以简单理解为
+import { foo, bar } from 'my_module';
+export { foo, bar };
+
+// 接口改名
+export { foo as myFoo } from 'my_module';
+
+// 整体输出
+export * from 'my_module';
+
+export * as ns from "mod";
+
+// 等同于
+import * as ns from "mod";
+export {ns};
+```
+
+>3. import()
+
+import命令会被 JavaScript 引擎静态分析，先于模块内的其他语句执行,这样的设计，固然有利于编译器提高效率，但也导致无法在运行时加载模块。在语法上，条件加载就不可能实现。
+
+ES2020提案 引入import()函数，支持动态加载模块。
+
+import(specifier) import函数的参数specifier，指定所要加载的模块的位置。import命令能够接受什么参数，import()函数就能接受什么参数，两者区别主要是后者为动态加载。
+
+import()函数可以用在任何地方，不仅仅是模块，非模块的脚本也可以使用。它是运行时执行，也就是说，什么时候运行到这一句，就会加载指定的模块。另外，import()函数与所加载的模块没有静态连接关系，这点也是与import语句不相同。import()类似于 Node.js 的require()方法，区别主要是前者是异步加载，后者是同步加载。
+
+import()返回一个 Promise 对象。下面是一个例子。
+
+```js
+const res = await import('@/utils/commonMethods.js')
+res.add()
+```
+### Module 的加载实现
+>1. 传统方法
+
+HTML 网页中，浏览器通过script标签加载 JavaScript 脚本。
+
+默认情况下，浏览器是同步加载 JavaScript 脚本，即渲染引擎遇到script标签就会停下来，等到执行完脚本，再继续向下渲染。如果是外部脚本，还必须加入脚本下载的时间。
+
+script标签打开defer或async属性，脚本就会异步加载。渲染引擎遇到这一行命令，就会开始下载外部脚本，但不会等它下载和执行，而是直接执行后面的命令。
+
+defer与async的区别是：defer要等到整个页面在内存中正常渲染结束（DOM 结构完全生成，以及其他脚本执行完成），才会执行；async一旦下载完，渲染引擎就会中断渲染，执行这个脚本以后，再继续渲染。一句话，defer是“渲染完再执行”，async是“下载完就执行”。另外，如果有多个defer脚本，会按照它们在页面出现的顺序加载，而多个async脚本是不能保证加载顺序的。
+
+>2. ES6 模块与 CommonJS 模块的差异
+1. CommonJS 模块输出的是一个值的拷贝，ES6 模块输出的是值的引用。
+2. CommonJS 模块是运行时加载，ES6 模块是编译时输出接口。
+3. CommonJS 模块的require()是同步加载模块，ES6 模块的import命令是异步加载，有一个独立的模块依赖的解析阶段。
+
+第二个差异是因为 CommonJS 加载的是一个对象（即module.exports属性），该对象只有在脚本运行完才会生成。而 ES6 模块不是对象，它的对外接口只是一种静态定义，在代码静态解析阶段就会生成。
+
+>3. 循环加载
+
+“循环加载”（circular dependency）指的是，a脚本的执行依赖b脚本，而b脚本的执行又依赖a脚本。
+
+通常，“循环加载”表示存在强耦合，如果处理不好，还可能导致递归加载，使得程序无法执行，因此应该避免出现。
+
+但是实际上，这是很难避免的，尤其是依赖关系复杂的大项目，很容易出现a依赖b，b依赖c，c又依赖a这样的情况。这意味着，模块加载机制必须考虑“循环加载”的情况。
+
+对于 JavaScript 语言来说，目前最常见的两种模块格式 CommonJS 和 ES6，处理“循环加载”的方法是不一样的，返回的结果也不一样。
+
+CommonJS 模块的循环加载
+
+CommonJS 模块的重要特性是加载时执行，即脚本代码在require的时候，就会全部执行。一旦出现某个模块被"循环加载"，就只输出已经执行的部分，还未执行的部分不会输出。
+
+

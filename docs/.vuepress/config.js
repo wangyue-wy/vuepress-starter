@@ -1,15 +1,15 @@
 module.exports = {
-    title: "Happy Ms. Dan",
+    title: "Happy Mr. Wang",
     description: 'My personal blog',
     base: '/vuepress-starter/', // 此处设置仓库名称
     head: [
-        ['link', { rel: 'icon', href: '/images/wd-img.jpg' }]
+        ['link', { rel: 'icon', href: '/images/wy.jpg' }]
     ],
     themeConfig: {
         lastUpdated: true,
         lastUpdated: '上次更新时间', // string | boolean 最后更新时间  --基于git
         sidebarDepth: 2,   // 设置嵌套的标题链接深度
-        logo: '/images/wd-img.jpg',
+        logo: '/images/wy.jpg',
         smoothScroll: true,
         nav: [  // 头部导航
             { text: '首页', link: '/index/' },
