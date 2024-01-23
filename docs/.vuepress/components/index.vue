@@ -2,7 +2,7 @@
   <div>
     <h4>个人信息</h4>
     <ul>
-      <li v-for="item in userInfos">{{ item }}</li>
+      <li v-for="item in userInfos" :key="item">{{ item }}</li>
     </ul>
     <h4>完成情况</h4>
     <ul>
@@ -55,12 +55,5 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-$color-blue: #2d8cf0;
-h4 {
-  line-height: 20px;
-  font-size: 16px;
-  padding-left: 10px;
-  border-left: 4px solid $color-blue;
-}
+<style>
 </style>
